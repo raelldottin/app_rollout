@@ -1,3 +1,13 @@
+"""
+iOS App Deployment
+"""
+
+__author__ = "Raell Dottin"
+__email__ = "raell.dottin@untuckit.com"
+__copyright__ = "Copyright (c) 2023 UNTUCKit"
+__license__ = "MIT"
+__version__ = "0.0.1"
+
 import argparse
 import logging
 import io
@@ -68,7 +78,57 @@ def email_logfile(filename, argparse, email=None, password=None, recipient=None)
     return True
 
 
-# Implement argparse for required arguments.
+def get_mobile_app_details(appname):
+    api = jamf.API()
+    mobiledeviceapps = api.get("mobiledeviceapplications")
+
+    try:
+        for app in mobiledeviceapps["mobile_device_applications"][
+            "mobile_device_application"
+        ][0]:
+            if appname == app["name"]:
+                return app["name"], app["version"], app["bundle_id"]
+    except:
+        logging.error("Unable to get list of mobile device applications.")
+
+    return None
+
+
+def update_mobile_app(appname):
+    return None
+
+
+def get_mobile_device_group_details(groupname):
+    api = jamf.API()
+    mobiledevicegroups = api.get("mobiledevicegroups")
+
+    try:
+        for group in mobiledevicegroups["mobile_device_groups"]["mobile_device_group"][
+            0
+        ]:
+            if groupname == group["name"]:
+                return group["id"], group["name"]
+
+    except:
+        logging.error("Unable to get list of mobile device groups.")
+
+
+# implement a function to create smart group
+def create_mobile_device_group():
+    return None
+
+
+def update_mobile_device_group():
+    return None
+
+
+# implement a function to set the mobile app details
+
+
+def set_mobile_app_details(appname):
+    return None
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Automate iOS app deployment using Jamf Pro"
@@ -100,6 +160,7 @@ def main():
         dest="appname",
         default=None,
         help="iOS App Name",
+        required=True,
     )
     parser.add_argument(
         "--appversion",
@@ -124,6 +185,11 @@ def main():
     )
 
     args = parser.parse_args()
+
+    get_mobile_app_list(args.appname)
+
+
+#    get_smart_device_groups()
 
 
 if __name__ == "__main__":
