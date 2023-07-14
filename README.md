@@ -34,4 +34,10 @@ cd app_rollout
 python -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
+python app_rollout.py --appname "NewStore Associate App"
+
+usage: app_rollout.py [-h] [--jamfserver JAMFSERVER] [--jamfuser JAMFUSER] [--jamfpass JAMFPASS]
+                      --appname APPNAME [--appversion APPVERSION]
+                      [--mininumiosversion MINIMUMIOSVERSION] [--bundleidentifier BUNDLEIDENTIFIER]
+
 ```
