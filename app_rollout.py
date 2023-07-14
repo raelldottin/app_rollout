@@ -73,7 +73,7 @@ def email_logfile(filename, argparse, email=None, password=None, recipient=None)
         session.send_message(message)
         session.quit()
     except:
-        logging.exception("Exception occurred", exc_info=True)
+        logging.exception("Unable to send log file via email", exc_info=True)
     log_capture_string.close()
     return True
 
@@ -85,11 +85,13 @@ def get_mobile_app_details(appname):
     try:
         for app in mobiledeviceapps["mobile_device_applications"][
             "mobile_device_application"
-        ][0]:
+        ]:
             if appname == app["name"]:
                 return app["name"], app["version"], app["bundle_id"]
     except:
-        logging.error("Unable to get list of mobile device applications.")
+        logging.exception(
+            "Unable to get list of mobile device applications", exc_info=True
+        )
 
     return None
 
@@ -103,14 +105,12 @@ def get_mobile_device_group_details(groupname):
     mobiledevicegroups = api.get("mobiledevicegroups")
 
     try:
-        for group in mobiledevicegroups["mobile_device_groups"]["mobile_device_group"][
-            0
-        ]:
+        for group in mobiledevicegroups["mobile_device_groups"]["mobile_device_group"]:
             if groupname == group["name"]:
                 return group["id"], group["name"]
 
     except:
-        logging.error("Unable to get list of mobile device groups.")
+        logging.exception("Unable to get list of mobile device groups.", exc_info=True)
 
 
 # implement a function to create smart group
@@ -186,11 +186,10 @@ def main():
 
     args = parser.parse_args()
 
-    get_mobile_app_list(args.appname)
+    appname, appversion, bundleidentifier = get_mobile_app_details(args.appname)
+    print(get_mobile_device_group_details(f"{appname} Deployment Group {appversion}"))
 
 
 #    get_smart_device_groups()
-
-
 if __name__ == "__main__":
     main()
