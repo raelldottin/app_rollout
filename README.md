@@ -2,6 +2,8 @@
 
 Python script to deploy and monitor the deployment of an iOS app via Jamf.
 
+Note: I recommend using Autopkg project for similar tasks: https://github.com/autopkg/autopkg
+
 ## Design
 
 iOS app deployment steps:
