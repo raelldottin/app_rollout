@@ -31,7 +31,18 @@ logging.basicConfig(
 )
 
 
-def email_logfile(filename, argparse, email=None, password=None, recipient=None):
+def email_logfile(
+    filename, argparse, email=None, password=None, recipient=None
+) -> bool:
+    """Emails all standard output to the receipient address.
+
+    :param filename: the name of the log file
+    :param argparse: argparse class with command line arguments
+    :param email: sender email address
+    :param password: the password for the sender email
+    :param recipient: the recipient email address
+    """
+
     if email and password and recipient:
         pass
     else:
@@ -43,9 +54,9 @@ def email_logfile(filename, argparse, email=None, password=None, recipient=None)
             recipient = config.get("MAIL_CONFIG", "RECIPIENT_EMAIL")
         except:
             logging.exception(
-                "Unable to email log file because email authentication is not properly setup."
+                "Unable to email log file because email authentication is not properly setup.", exc_info=True
             )
-            return None
+            return False
 
     try:
         with open(filename, "rb") as f:
@@ -78,7 +89,11 @@ def email_logfile(filename, argparse, email=None, password=None, recipient=None)
     return True
 
 
-def get_mobile_app_details(appname):
+def get_mobile_app(appname: str) -> tuple[str, str, str, str] | None:
+    """Get a list of mobile apps, find a specific app from the list and return id, name, version, and bundle id.
+
+    :param appname: the name of mobile application
+    """
     api = jamf.API()
     mobiledeviceapps = api.get("mobiledeviceapplications")
 
@@ -87,20 +102,23 @@ def get_mobile_app_details(appname):
             "mobile_device_application"
         ]:
             if appname == app["name"]:
-                return app["name"], app["version"], app["bundle_id"]
+                logging.info(
+                    f"Found Mobile Device App entry for {app['name']}.")
+                return app["id"], app["name"], app["version"], app["bundle_id"]
     except:
         logging.exception(
-            "Unable to get list of mobile device applications", exc_info=True
-        )
+            "Unable to get list of mobile device apps", exc_info=True)
+
+    logging.info(f"Unable to find a mobile app named {appname}")
 
     return None
 
 
-def update_mobile_app(appname):
-    return None
+def get_mobile_device_group(groupname: str) -> tuple[str, str] | None:
+    """Get a list of smart device groups, find a specific smart group based on the group name and return the group id and group name.
 
-
-def get_mobile_device_group_details(groupname):
+    :param groupname: the name of samrt device group
+    """
     api = jamf.API()
     mobiledevicegroups = api.get("mobiledevicegroups")
 
@@ -110,19 +128,22 @@ def get_mobile_device_group_details(groupname):
                 return group["id"], group["name"]
 
     except:
-        logging.exception("Unable to get list of mobile device groups.", exc_info=True)
+        logging.exception(
+            "Unable to get list of mobile device groups.", exc_info=True)
+
+    return availabeid
 
 
 # implement a function to create smart group
-def create_mobile_device_group():
+def set_mobile_device_group(id):
+    """Creates a mobile smart group.
+    :param 
     return None
 
 
-def update_mobile_device_group():
-    return None
-
-
-# implement a function to set the mobile app details
+def get_mobile_app_details(id):
+    api = jamf.API()
+    api.get(f"mobiledeviceapplications/id/{id}")
 
 
 def set_mobile_app_details(appname):
@@ -186,8 +207,9 @@ def main():
 
     args = parser.parse_args()
 
-    appname, appversion, bundleidentifier = get_mobile_app_details(args.appname)
-    print(get_mobile_device_group_details(f"{appname} Deployment Group {appversion}"))
+    id, appname, appversion, bundleidentifier = get_mobile_app(args.appname)
+    print(get_mobile_app_details(id))
+    print(get_mobile_device_group(f"{appname} Deployment Group {appversion}"))
 
 
 #    get_smart_device_groups()
