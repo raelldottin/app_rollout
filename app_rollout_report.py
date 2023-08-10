@@ -28,9 +28,13 @@ logging.basicConfig(
 )
 
 
-def get_mobile_device_group(groupname: str) -> tuple[str, str] | tuple[None, None]:
+def get_mobile_device_group_members(
+    groupname: str,
+    appname: str,
+    appversion: str,
+) -> tuple[str, str] | tuple[None, None]:
     """Get a list of smart device groups, find a specific smart group based on the g
-    roup name and return the group id and group name.
+    roup name. Look up the app inventory details for each group member.
 
         :param groupname: the name of samrt device group
     """
@@ -39,13 +43,39 @@ def get_mobile_device_group(groupname: str) -> tuple[str, str] | tuple[None, Non
 
     try:
         for group in mobiledevicegroups["mobile_device_groups"]["mobile_device_group"]:
+            logging.warn(f"{group['name']=}")
             if groupname == group["name"]:
                 logging.debug(f"Found smart group: {group['name']}")
-                return group["id"], group["name"]
+                groupdata = api.get(f"mobiledevicegroups/id/{group['id']}")
+                if (
+                    "mobile_device_group" in groupdata
+                    and "mobile_devices" in groupdata["mobile_device_group"]
+                ):
+                    logging.debug(
+                        groupdata["mobile_device_group"]["mobile_devices"][
+                            "mobile_device"
+                        ]
+                    )
+                    for mobiledevice in groupdata["mobile_device_group"][
+                        "mobile_devices"
+                    ]["mobile_device"]:
+                        mobiledevicedata = api.get(
+                            f"mobiledevices/id/{mobiledevice['id']}"
+                        )
+                        for app in mobiledevicedata["mobile_device"]["applications"][
+                            "application"
+                        ]:
+                            if appname == app["application_name"]:
+                                logging.warning(
+                                    f"Name: {mobiledevicedata['mobile_device']['general']['name']}, Location: {mobiledevicedata['mobile_device']['location']['building']}, Application Name: {app['application_name']}, Application Version: {app['application_short_version']} "
+                                )
+
+                break
+        else:
+            logging.error(f"Unable to get members of mobile device group: {groupname}")
     except:
         logging.exception("Unable to get list of mobile device groups.", exc_info=True)
 
-    logging.info(f"Unable to find mobile device group: {groupname}")
     return None, None
 
 
@@ -170,27 +200,26 @@ def main():
         default=None,
         help="Debugging output",
     )
+    # Get the app name
+    # Get the smart group name
+    # Get app version
+    # Check each member of the smart group's version of the app
+    # Save the data into a gsheet
+    # Run as github action
 
     args = parser.parse_args()
 
     if args.debug:
         logging.getLogger().setLevel(logging.DEBUG)
         logging.debug("Debug logging enabled.")
+    else:
+        logging.getLogger().setLevel(logging.INFO)
 
-    getDeployReport(
-        args.appname,
-        args.appversion,
-        args.mininumiosversion,
-        args.bundleidentifier,
-        args.smartdevicegroup,
-    )
+        logging.info("Calling get_mobile_device_group_members().")
+        get_mobile_device_group_members(
+            args.smartdevicegroup, args.appname, args.appversion
+        )
 
 
 if __name__ == "__main__":
-    # Get the app name
-    # Get the smart group name
-    # Get app version
-    # Check each member of the smart group's version of the app
-    # Save the data into a gsheet
-    # Run from github
     main()
