@@ -38,6 +38,7 @@ def get_mobile_device_group_members(
 
         :param groupname: the name of samrt device group
     """
+    count = 0
     api = jamf.API()
     mobiledevicegroups = api.get("mobiledevicegroups")
 
@@ -69,10 +70,12 @@ def get_mobile_device_group_members(
                                 logging.warning(
                                     f"Name: {mobiledevicedata['mobile_device']['general']['name']}, Location: {mobiledevicedata['mobile_device']['location']['building']}, Application Name: {app['application_name']}, Application Version: {app['application_short_version']} "
                                 )
+                                count = count + 1
 
                 break
         else:
             logging.error(f"Unable to get members of mobile device group: {groupname}")
+        logging.info(f"A total of {count} devices found with {appname} app installed.")
     except:
         logging.exception("Unable to get list of mobile device groups.", exc_info=True)
 
